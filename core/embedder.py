@@ -3,9 +3,14 @@ from facenet_pytorch import MTCNN, InceptionResnetV1
 
 
 class Embedder:
-    def __init__(self, device="cpu"):
+    def __init__(self, device="cpu", image_size=160, post_process=True, margin=0):
         self.device = device
-        self.mtcnn = MTCNN(image_size=160, device=device)
+        self.mtcnn = MTCNN(
+            device=device,
+            image_size=image_size,
+            post_process=post_process,
+            margin=margin,
+        )
         self.model = InceptionResnetV1(pretrained="vggface2").eval().to(device)
 
     def get_embedding(self, frame):
