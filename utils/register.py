@@ -1,21 +1,18 @@
 import cv2
-import torch
 from PIL import Image
 
-from core.detector import Detector
-from core.embedder import Embedder
-from db.database import Database
+from config.configurator import Configurator
 
 
-def register_user_from_camera(
-    user_id: str, device="cuda" if torch.cuda.is_available() else "cpu"
-):
-    detector = Detector(device=device)
-    embedder = Embedder(device=device)
-    database = Database()
+def register_user_from_camera(user_id: str):
+    configurator = Configurator.parse_conf("config/config.yaml")
+    detector = configurator.create_detector()
+    database = configurator.create_database()
+    embedder = configurator.create_embedder()
 
     cap = cv2.VideoCapture(0)
-    print("📷 Starting camera... Look directly into the camera.")
+    cv2.namedWindow("Rejestracja użytkownika", cv2.WINDOW_NORMAL)
+    print("📷 Uruchamianie kamery... Spójrz prosto w obiektyw.")
     registered = False
 
     while True:
@@ -30,7 +27,7 @@ def register_user_from_camera(
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
             cv2.putText(
                 frame,
-                "Face detected - press 'c' to capture",
+                "Wykryto twarz - nacisnij 'c', aby zarejestrowac",
                 (30, 30),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.7,
@@ -38,23 +35,23 @@ def register_user_from_camera(
                 2,
             )
 
-        cv2.imshow("Register User", frame)
+        cv2.imshow("Rejestracja użytkownika", frame)
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord("c") and detection:
-            print("📸 Capturing image and creating embedding...")
+            print("📸 Przechwytywanie obrazu...")
             image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             embedding = embedder.get_embedding(image)
 
             if embedding is not None:
                 database.save_embedding(user_id, embedding)
-                print(f"✅ Registered new user: {user_id}")
+                print(f"✅ Zarejestrowano nowego użytkownika: {user_id}")
                 registered = True
             else:
-                print("❌ Failed to generate embedding.")
+                print("❌ Nie udało się zarejestrować.")
             break
         elif key == ord("q"):
-            print("❌ Registration canceled.")
+            print("❌ Rejestracja anulowana.")
             break
 
     cap.release()
@@ -63,16 +60,16 @@ def register_user_from_camera(
 
 
 def main():
-    print("👤 User Registration")
-    user_id = input("Enter user ID to register: ").strip()
+    print("👤 Rejestracja użytkownika")
+    user_id = input("Podaj identyfikator użytkownika: ").strip()
     if user_id:
         success = register_user_from_camera(user_id)
         if success:
-            print("✅ Registration complete.")
+            print("✅ Rejestracja zakończona sukcesem.")
         else:
-            print("❌ Registration failed.")
+            print("❌ Rejestracja nie powiodła się.")
     else:
-        print("❌ Invalid user ID. Exiting.")
+        print("❌ Nieprawidłowy identyfikator użytkownika.")
 
 
 if __name__ == "__main__":

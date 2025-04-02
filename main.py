@@ -1,27 +1,23 @@
 import time
 
 import cv2
-import torch
 from PIL import Image
 
-from core.authenticator import Authenticator
-from core.capturer import Capturer
-from core.detector import Detector
-from core.embedder import Embedder
-from db.database import Database
+from config.configurator import Configurator
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+configurator = Configurator.parse_conf("config/config.yaml")
 
-detector = Detector(device=device)
-capturer = Capturer()
-embedder = Embedder(device=device)
-database = Database()
-authenticator = Authenticator()
+detector = configurator.create_detector()
+capturer = configurator.create_capturer()
+embedder = configurator.create_embedder()
+authenticator = configurator.create_authenticator()
+database = configurator.create_database()
 
 embeddings, user_ids = database.load_all_embeddings()
 authenticator.load_embeddings(embeddings, user_ids)
 
 cap = cv2.VideoCapture(0)
+cv2.namedWindow("Autentykacja", cv2.WINDOW_NORMAL)
 
 last_result_time = 0
 last_result_text = ""
