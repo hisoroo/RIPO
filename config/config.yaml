@@ -1,0 +1,23 @@
+# === Wybór urządzenia do obliczeń ===
+device: "cpu" # "cuda" - karta graficzna nvidia lub "cpu" - procesor
+
+# === Detektor ===
+min_confidence: 0.9 # Minimalna pewność detekcji twarzy
+min_face_size: 200 # Minimalny rozmiar wykrywanej twarzy (w px, im wiekszy tym blizej kamery trzeba stanąć - zabezpieczenie przed wykrywaniem ludzi z otoczenia
+
+# === Logika tworzenia zdjęć do analizy ===
+min_look_time: 1.0 # Minimalny czas stania nieruchomo - zabezpieczenie przed rozmazanym zdjęciem
+symmetry_threshold: 10 # Maksymalna tolerancja odwrócenia głowy od pozycji prostopadłej do kamery
+debounce_time: 2.0 # Czas między kolejnymi zdjęciami (sekundy)
+
+# === Tworzenie embeddingu ===
+image_size: 160 # Rozmiar wejściowy twarzy dla modelu, dopasowany do obecnego modelu
+post_process: true # Czy stosować wbudowaną do MTCNN normalizację
+embedding_dim: 512 # Wymiar embeddingu, dopasowany do obecnego modelu
+margin: 0 # Margines bounding boxów, im wiekszy tym wiecej tła trafia do embeddingu
+
+# === Uwierzytelnienie ===
+threshold: 0.8 # Próg dopasowania - minimalna odległość L2 (niższy = bardziej wymagający)
+
+# === Baza danych ===
+db_path: "db/faces.db" # Ścieżka do pliku SQLite
