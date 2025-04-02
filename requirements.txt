@@ -1,0 +1,6 @@
+torch
+torchvision
+opencv-python
+facenet-pytorch
+faiss-cpu
+PyYAML
