@@ -4,8 +4,11 @@ import cv2
 from PIL import Image
 
 from config.configurator import Configurator
+from utils.verbose import draw_overlay, print_logs
 
 configurator = Configurator.parse_conf("config/config.yaml")
+
+is_verbose = configurator.verbose_output()
 
 detector = configurator.create_detector()
 capturer = configurator.create_capturer()
@@ -36,14 +39,18 @@ while True:
         if capturer.check_capture(is_facing):
             pil_image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             embedding = embedder.get_embedding(pil_image)
-            user_id = authenticator.authenticate(embedding)
+            user_id, distance = authenticator.authenticate(embedding)
 
             if user_id:
                 last_result_text = f"Rozpoznano: {user_id}"
-                print(f"✅ {last_result_text}")
+                print(f"✅ Rozpoznano: {user_id}")
+                if is_verbose:
+                    print_logs(user_id, distance, detection)
             else:
                 last_result_text = "Nieznana osoba"
                 print("❌ Nieznana osoba")
+                if is_verbose:
+                    print_logs(user_id=None, distance=distance, detection=detection)
 
             last_result_time = time.time()
 
@@ -57,6 +64,8 @@ while True:
             (0, 255, 0) if "Rozpoznano" in last_result_text else (0, 0, 255),
             2,
         )
+        if is_verbose and detection:
+            draw_overlay(frame, detection, distance)
 
     cv2.imshow("Autentykacja", frame)
     if cv2.waitKey(1) & 0xFF == ord("q"):
