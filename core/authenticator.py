@@ -29,5 +29,5 @@ class Authenticator:
         D, I = self.index.search(embedding, 1)
 
         if D[0][0] <= self.threshold:
-            return self.ids[I[0][0]]
-        return None
+            return self.ids[I[0][0]], D[0][0]
+        return None, D[0][0]
