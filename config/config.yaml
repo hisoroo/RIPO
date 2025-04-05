@@ -1,26 +1,41 @@
 # === Wybór urządzenia do obliczeń ===
-device: "cpu" # "cuda" - karta graficzna nvidia lub "cpu" - procesor
+device: "cpu" # "cuda" dla karty graficznej NVIDIA, "cpu" dla procesora
 
 # === Detektor ===
-min_confidence: 0.5 # Minimalna pewność detekcji twarzy
-min_face_size: 200 # Minimalny rozmiar wykrywanej twarzy (w px, im wiekszy tym blizej kamery trzeba stanąć - zabezpieczenie przed wykrywaniem ludzi z otoczenia
+detector:
+  min_confidence: 0.5 # Minimalna pewność detekcji twarzy (0–1)
+  min_face_size: 200 # Minimalny rozmiar wykrywanej twarzy (w px); większy = tylko bliskie twarze
 
 # === Logika tworzenia zdjęć do analizy ===
-min_look_time: 1.0 # Minimalny czas stania nieruchomo - zabezpieczenie przed rozmazanym zdjęciem
-symmetry_threshold: 10 # Maksymalna tolerancja odwrócenia głowy od pozycji prostopadłej do kamery
-debounce_time: 2.0 # Czas między kolejnymi zdjęciami (sekundy)
+capturer:
+  min_look_time: 1.0 # Minimalny czas patrzenia w kamerę (w sekundach)
+  symmetry_threshold: 10 # Maksymalna tolerancja przekręcenia głowy (px różnicy położenia nosa względem oczu/ust)
+  debounce_time: 2.0 # Minimalny czas pomiędzy kolejnymi ujęciami (w sekundach)
+  check_is_facing: false # Czy wymagać patrzenia prosto w kamerę? (true/false)
 
 # === Tworzenie embeddingu ===
-image_size: 160 # Rozmiar wejściowy twarzy dla modelu, dopasowany do obecnego modelu
-post_process: true # Czy stosować wbudowaną do MTCNN normalizację
-embedding_dim: 512 # Wymiar embeddingu, dopasowany do obecnego modelu
-margin: 0 # Margines bounding boxów, im wiekszy tym wiecej tła trafia do embeddingu
+embedder:
+  image_size: 160 # Rozmiar wejściowy twarzy dla modelu
+  post_process: true # Czy stosować normalizację MTCNN (zalecane)
+  margin: 0 # Margines wokół twarzy – większy = więcej tła
 
 # === Uwierzytelnienie ===
-threshold: 0.8 # Próg dopasowania - minimalna odległość L2 (niższy = bardziej wymagający)
+authenticator:
+  embedding_dim: 512 # Wymiar embeddingu (zgodny z modelem)
+  threshold: 0.8 # Próg odległości L2 – im mniejszy, tym trudniej o dopasowanie
 
 # === Baza danych ===
-db_path: "db/faces.db" # Ścieżka do pliku SQLite
+database:
+  db_path: "db/faces.db" # Ścieżka do pliku SQLite z embeddingami
+  embedding_dim: 512 # Wymiar embeddingu (musi pasować do modelu)
 
 # === Różne ===
-verbose: false # wyświetla dodatkowe informacje, przydatne do oceny działania systemu
+misc:
+  verbose: false # Czy wypisywać dodatkowe informacje o przebiegu działania systemu?
+
+  # === Wejście wideo ===
+  video:
+    mode: "file" # "live" - kamera na żywo, "file" - analiza nagranego pliku
+    video_path: "videos/05-04-2025/video-18-22-12.avi" # Ścieżka do pliku wideo (gdy mode == "file")
+    record_video: true # Czy zapisywać sesję wideo (działa tylko w trybie "live")
+    output_path: "" # Ścieżka do pliku wyjściowego z nagraniem; jeśli puste, generowana będzie dynamicznie
