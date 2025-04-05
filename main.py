@@ -5,6 +5,7 @@ from PIL import Image
 
 from config.configurator import Configurator
 from utils.verbose import draw_overlay, print_logs
+from utils.video import setup_capture, setup_recorder
 
 configurator = Configurator.parse_conf("config/config.yaml")
 
@@ -19,18 +20,33 @@ database = configurator.create_database()
 embeddings, user_ids = database.load_all_embeddings()
 authenticator.load_embeddings(embeddings, user_ids)
 
-cap = cv2.VideoCapture(0)
+# TODO refactor video recorder into a class ??
+video_conf = configurator.setup_video()
+mode = video_conf.get("mode", "live")
+record_video = video_conf.get("record_video", False)
+video_path = video_conf.get("video_path")
+output_path = video_conf["dynamic_path"]
+
+cap = setup_capture(mode, video_path)
+out = setup_recorder(cap, output_path) if record_video and mode == "live" else None
+
+if record_video:
+    print(f"Nagrywanie aktywne — zapis do: {output_path}")
+else:
+    print("Nagrywanie wyłączone")
+
 cv2.namedWindow("Autentykacja", cv2.WINDOW_NORMAL)
 
 last_result_time = 0
 last_result_text = ""
 result_display_duration = 3
 
-print("🔄 System uruchomiony. Wciśnij 'q' aby zakończyć.")
+print("System uruchomiony. Wciśnij 'q' aby zakończyć.")
 
 while True:
     ret, frame = cap.read()
     if not ret:
+        print("Koniec pliku lub problem z kamerą.")
         break
 
     detection = detector.detect(frame)
@@ -68,8 +84,15 @@ while True:
             draw_overlay(frame, detection, distance)
 
     cv2.imshow("Autentykacja", frame)
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
 
+    # TODO: fix the way the video is recorded (sync with framerate, possibly on another thread??)
+    if out:
+        out.write(frame)
+
+    if cv2.waitKey(1) & 0xFF == ord("q"):
+        print("Zamykanie programu...")
+        break
+if out:
+    out.release()
 cap.release()
 cv2.destroyAllWindows()
