@@ -2,7 +2,7 @@
 device: "cpu" # "cuda" - karta graficzna nvidia lub "cpu" - procesor
 
 # === Detektor ===
-min_confidence: 0.9 # Minimalna pewność detekcji twarzy
+min_confidence: 0.5 # Minimalna pewność detekcji twarzy
 min_face_size: 200 # Minimalny rozmiar wykrywanej twarzy (w px, im wiekszy tym blizej kamery trzeba stanąć - zabezpieczenie przed wykrywaniem ludzi z otoczenia
 
 # === Logika tworzenia zdjęć do analizy ===
@@ -21,3 +21,6 @@ threshold: 0.8 # Próg dopasowania - minimalna odległość L2 (niższy = bardzi
 
 # === Baza danych ===
 db_path: "db/faces.db" # Ścieżka do pliku SQLite
+
+# === Różne ===
+verbose: false # wyświetla dodatkowe informacje, przydatne do oceny działania systemu

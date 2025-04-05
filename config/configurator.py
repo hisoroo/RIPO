@@ -7,6 +7,7 @@ from core.embedder import Embedder
 from db.database import Database
 
 
+# TODO add video capture option
 class Configurator:
     def __init__(self, config):
         self.config = config
@@ -40,6 +41,8 @@ class Configurator:
             "db_path": config.get("db_path", "db/faces.db"),
         }
 
+        self.verbose = config.get("verbose", False)
+
     @classmethod
     def parse_conf(cls, conf):
         with open(conf, "r") as f:
@@ -60,3 +63,6 @@ class Configurator:
 
     def create_database(self):
         return Database(**self.db_conf)
+
+    def verbose_output(self):
+        return self.verbose
