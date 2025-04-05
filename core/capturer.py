@@ -2,10 +2,17 @@ import time
 
 
 class Capturer:
-    def __init__(self, min_look_time=1.0, symmetry_threshold=10, debounce_time=2.0):
+    def __init__(
+        self,
+        min_look_time=1.0,
+        symmetry_threshold=10,
+        debounce_time=2.0,
+        check_is_facing=True,
+    ):
         self.min_look_time = min_look_time
         self.symmetry_threshold = symmetry_threshold
         self.debounce_time = debounce_time
+        self.check_is_facing = check_is_facing
 
         self.looking_since = None
         self.last_capture_time = 0
@@ -25,6 +32,11 @@ class Capturer:
     def check_capture(self, is_facing):
         now = time.time()
 
+        if not self.check_is_facing:
+            if now - self.last_capture_time >= self.debounce_time:
+                self.last_capture_time = now
+                return True
+
         if is_facing:
             if self.looking_since is None:
                 self.looking_since = now
@@ -38,4 +50,3 @@ class Capturer:
             self.looking_since = None
 
         return False
-
