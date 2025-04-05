@@ -14,7 +14,7 @@ class Detector:
         boxes, conf, landmarks = self.mtcnn.detect(img, landmarks=True)
 
         if boxes is not None and len(boxes):
-            if conf >= self.min_confidence:
+            if conf[0] >= self.min_confidence:
                 return {
                     "box": boxes[0].astype(int),
                     "confidence": conf[0],
