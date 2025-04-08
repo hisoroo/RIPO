@@ -12,7 +12,7 @@ def register_user_from_camera(user_id: str):
 
     cap = cv2.VideoCapture(0)
     cv2.namedWindow("Rejestracja użytkownika", cv2.WINDOW_NORMAL)
-    print("📷 Uruchamianie kamery... Spójrz prosto w obiektyw.")
+    print("Uruchamianie kamery... Spójrz prosto w obiektyw.")
     registered = False
 
     while True:
@@ -39,7 +39,7 @@ def register_user_from_camera(user_id: str):
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord("c") and detection:
-            print("📸 Przechwytywanie obrazu...")
+            print("Przechwytywanie obrazu...")
             image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             embedding = embedder.get_embedding(image)
 
@@ -60,7 +60,7 @@ def register_user_from_camera(user_id: str):
 
 
 def main():
-    print("👤 Rejestracja użytkownika")
+    print("Rejestracja użytkownika")
     user_id = input("Podaj identyfikator użytkownika: ").strip()
     if user_id:
         success = register_user_from_camera(user_id)

@@ -22,7 +22,7 @@ embedder:
 # === Uwierzytelnienie ===
 authenticator:
   embedding_dim: 512 # Wymiar embeddingu (zgodny z modelem)
-  threshold: 0.8 # Próg odległości L2 – im mniejszy, tym trudniej o dopasowanie
+  threshold: 0.8 # Próg odległości L2 – im mniejszy, tym dokładniejsze dopasowanie
 
 # === Baza danych ===
 database:
@@ -31,11 +31,11 @@ database:
 
 # === Różne ===
 misc:
-  verbose: false # Czy wypisywać dodatkowe informacje o przebiegu działania systemu?
+  verbose: true # Wypisywanie dodatkowych informacji o przebiegu działania systemu
 
   # === Wejście wideo ===
   video:
-    mode: "file" # "live" - kamera na żywo, "file" - analiza nagranego pliku
-    video_path: "videos/05-04-2025/video-18-22-12.avi" # Ścieżka do pliku wideo (gdy mode == "file")
-    record_video: true # Czy zapisywać sesję wideo (działa tylko w trybie "live")
+    mode: "live" # "live" - kamera na żywo, "file" - analiza nagranego pliku
+    video_path: "" # Ścieżka do pliku wideo (gdy mode == "file")
+    record_video: false # Czy zapisywać sesję wideo (działa tylko w trybie "live")
     output_path: "" # Ścieżka do pliku wyjściowego z nagraniem; jeśli puste, generowana będzie dynamicznie
