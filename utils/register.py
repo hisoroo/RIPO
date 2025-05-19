@@ -6,6 +6,20 @@ import numpy as np
 from config.configurator import Configurator
 
 
+SUPPORTED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.bmp', '.gif', '.tiff']
+
+def _list_images(photos_dir_path: str):
+    """Lists supported image files in the given directory."""
+    if not os.path.isdir(photos_dir_path):
+        return []
+    
+    images = []
+    for f_name in os.listdir(photos_dir_path):
+        if os.path.splitext(f_name)[1].lower() in SUPPORTED_IMAGE_EXTENSIONS:
+            images.append(f_name)
+    return sorted(images)
+
+
 def _register_from_camera(user_id: str, configurator: Configurator, detector, database, embedder):
     is_headless = configurator.is_headless()
     if is_headless:
@@ -69,6 +83,7 @@ def _register_from_camera(user_id: str, configurator: Configurator, detector, da
 
 
 def _register_from_file(user_id: str, image_path: str, configurator: Configurator, detector, database, embedder):
+   
     if not image_path or not os.path.exists(image_path):
         print(f"❌ Ścieżka do pliku jest nieprawidłowa lub plik nie istnieje: {image_path}")
         return False
@@ -138,8 +153,47 @@ def main():
     if source_choice == "kamera":
         success = register_user(user_id, source_type="camera")
     elif source_choice == "plik":
-        image_path = input("Podaj ścieżkę do zdjęcia: ").strip()
-        success = register_user(user_id, source_type="file", image_path=image_path)
+        photos_dir = "photos"
+
+        
+        print(f"Jeśli używasz Dockera, upewnij się, że zdjecia sa w katalogu {os.path.abspath(photos_dir)}")
+
+        if not os.path.isdir(photos_dir):
+            print(f"❌ Katalog '{photos_dir}' nie istnieje. Utwórz go i dodaj zdjęcia, lub sprawdź konfigurację woluminu Docker.")
+            return
+
+        available_images = _list_images(photos_dir)
+
+        if not available_images:
+            print(f"❌ Nie znaleziono żadnych obsługiwanych plików obrazów w katalogu '{photos_dir}'.")
+            print(f"   Obsługiwane formaty: {', '.join(SUPPORTED_IMAGE_EXTENSIONS)}")
+            return
+
+        print("\nDostępne zdjęcia w katalogu '{}':".format(photos_dir))
+        for i, img_name in enumerate(available_images):
+            print(f"  {i + 1}. {img_name}")
+
+        while True:
+            try:
+                choice = input(f"Wybierz numer zdjęcia (1-{len(available_images)}) lub 'q' aby anulować: ").strip()
+                if choice.lower() == 'q':
+                    print("❌ Rejestracja z pliku anulowana.")
+                    return
+                choice_idx = int(choice) - 1
+                if 0 <= choice_idx < len(available_images):
+                    selected_image_name = available_images[choice_idx]
+                    image_path = os.path.join(photos_dir, selected_image_name)
+                    print(f"Wybrano: {image_path}")
+                    success = register_user(user_id, source_type="file", image_path=image_path)
+                    break
+                else:
+                    print(f"❌ Nieprawidłowy wybór. Podaj numer od 1 do {len(available_images)}.")
+            except ValueError:
+                print("❌ Nieprawidłowy format. Podaj numer.")
+            except Exception as e:
+                print(f"❌ Wystąpił nieoczekiwany błąd: {e}")
+                return
+
 
     if success:
         print("✅ Rejestracja zakończona sukcesem.")

@@ -133,7 +133,7 @@ while True:
             if auth_result is not None:
                 user_id, auth_distance = auth_result
             
-            distance_metric = auth_distance # Use auth_distance as the distance_metric
+            distance_metric = auth_distance
 
             if user_id:
                 current_result_text = f"Rozpoznano: {user_id}"
@@ -153,7 +153,7 @@ while True:
             last_result_time = time.time()
             last_detection_time = time.time()
             last_detection = detection
-            last_distance = distance_metric # Ensure last_distance gets the potentially None distance_metric
+            last_distance = distance_metric
     else:
         if time.time() - last_detection_time < result_display_duration:
             detection = last_detection
