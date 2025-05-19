@@ -54,6 +54,7 @@ class Configurator:
 
         self.video = misc.get("video", {})
         self.verbose = misc.get("verbose", False)
+        self.headless = misc.get("headless", False)
 
     @classmethod
     def parse_conf(cls, conf_path):
@@ -78,6 +79,9 @@ class Configurator:
 
     def verbose_output(self):
         return self.verbose
+
+    def is_headless(self):
+        return self.headless
 
     def setup_video(self):
         video = self.video.copy()

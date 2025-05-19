@@ -10,6 +10,7 @@ from utils.video import setup_capture, setup_recorder
 
 configurator = Configurator.parse_conf("config/config.yaml")
 is_verbose = configurator.verbose_output()
+is_headless = configurator.is_headless()
 
 detector = configurator.create_detector()
 capturer = configurator.create_capturer()
@@ -32,6 +33,7 @@ if mode == "image":
     frame = cap
     detection = detector.detect(frame)
     distance_metric = None
+    user_id_result = None
 
     if detection:
         is_facing = capturer.is_facing_forward(detection["landmarks"])
@@ -40,6 +42,7 @@ if mode == "image":
             embedding = embedder.get_embedding(pil_image)
             user_id, auth_distance = authenticator.authenticate(embedding)
             distance_metric = auth_distance
+            user_id_result = user_id
 
             if user_id:
                 result_text = f"✅ Rozpoznano: {user_id}"
@@ -48,27 +51,30 @@ if mode == "image":
                 result_text = "❌ Nieznana osoba"
                 print(result_text)
 
-            cv2.putText(
-                frame,
-                result_text,
-                (30, 50),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                1,
-                (0, 255, 0) if "Rozpoznano" in result_text else (0, 0, 255),
-                2,
-            )
+            if not is_headless:
+                cv2.putText(
+                    frame,
+                    result_text,
+                    (30, 50),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    1,
+                    (0, 255, 0) if "Rozpoznano" in result_text else (0, 0, 255),
+                    2,
+                )
 
             if is_verbose:
-                print_logs(user_id if user_id else None, distance_metric, detection)
-                draw_overlay(frame, detection, distance_metric)
+                print_logs(user_id_result, distance_metric, detection)
+                if not is_headless:
+                    draw_overlay(frame, detection, distance_metric)
         else:
             print("Twarz nie jest skierowana do przodu.")
     else:
         print("❗ Nie wykryto twarzy na zdjęciu.")
 
-    cv2.imshow("Autentykacja", frame)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    if not is_headless:
+        cv2.imshow("Autentykacja", frame)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
     exit()
 
 fps = cap.get(cv2.CAP_PROP_FPS)
@@ -84,7 +90,8 @@ if record_video:
 else:
     print("Nagrywanie wyłączone")
 
-cv2.namedWindow("Autentykacja", cv2.WINDOW_NORMAL)
+if not is_headless:
+    cv2.namedWindow("Autentykacja", cv2.WINDOW_NORMAL)
 
 last_result_time = 0
 last_result_text = ""
@@ -116,16 +123,20 @@ while True:
             distance_metric = auth_distance
 
             if user_id:
-                last_result_text = f"Rozpoznano: {user_id}"
-                print(f"✅ Rozpoznano: {user_id}")
+                current_result_text = f"Rozpoznano: {user_id}"
+                if last_result_text != current_result_text or (time.time() - last_result_time > result_display_duration):
+                    print(f"✅ {current_result_text}")
+                last_result_text = current_result_text
                 if is_verbose:
                     print_logs(user_id, distance_metric, detection)
             else:
-                last_result_text = "Nieznana osoba"
-                print("❌ Nieznana osoba")
+                current_result_text = "Nieznana osoba"
+                if last_result_text != current_result_text or (time.time() - last_result_time > result_display_duration):
+                    print(f"❌ {current_result_text}")
+                last_result_text = current_result_text
                 if is_verbose:
                     print_logs(None, distance_metric, detection)
-
+            
             last_result_time = time.time()
             last_detection_time = time.time()
             last_detection = detection
@@ -139,7 +150,7 @@ while True:
             distance_metric = None
 
     current_display_time = time.time()
-    if current_display_time - last_result_time < result_display_duration:
+    if not is_headless and current_display_time - last_result_time < result_display_duration:
         cv2.putText(
             frame,
             last_result_text,
@@ -152,7 +163,8 @@ while True:
         if is_verbose and detection:
             draw_overlay(frame, detection, last_distance)
 
-    cv2.imshow("Autentykacja", frame)
+    if not is_headless:
+        cv2.imshow("Autentykacja", frame)
 
     processing_time = time.time() - loop_start_time
     
@@ -170,4 +182,5 @@ while True:
 if out:
     out.release()
 cap.release()
-cv2.destroyAllWindows()
+if not is_headless:
+    cv2.destroyAllWindows()

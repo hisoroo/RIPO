@@ -9,6 +9,11 @@ def register_user_from_camera(user_id: str):
     detector = configurator.create_detector()
     database = configurator.create_database()
     embedder = configurator.create_embedder()
+    is_headless = configurator.is_headless()
+
+    if is_headless:
+        print("❌ Rejestracja użytkownika z kamery nie jest dostępna w trybie headless.")
+        return False
 
     cap = cv2.VideoCapture(0)
     cv2.namedWindow("Rejestracja użytkownika", cv2.WINDOW_NORMAL)
@@ -55,7 +60,8 @@ def register_user_from_camera(user_id: str):
             break
 
     cap.release()
-    cv2.destroyAllWindows()
+    if not is_headless:
+        cv2.destroyAllWindows()
     return registered
 
 

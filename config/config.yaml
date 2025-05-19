@@ -32,6 +32,7 @@ database:
 # === Różne ===
 misc:
   verbose: true # Wypisywanie dodatkowych informacji o przebiegu działania systemu
+  headless: true # Uruchomienie aplikacji bez interfejsu graficznego (true/false)
 
   # === Wejście wideo ===
   video:
