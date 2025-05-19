@@ -20,7 +20,6 @@ database = configurator.create_database()
 embeddings, user_ids = database.load_all_embeddings()
 authenticator.load_embeddings(embeddings, user_ids)
 
-# TODO refactor video recorder into a class ??
 video_conf = configurator.setup_video()
 mode = video_conf.get("mode", "live")
 record_video = video_conf.get("record_video", False)
@@ -28,10 +27,17 @@ video_path = video_conf.get("video_path")
 output_path = video_conf["dynamic_path"]
 
 cap = setup_capture(mode, video_path)
-out = setup_recorder(cap, output_path) if record_video and mode == "live" else None
+
+fps = cap.get(cv2.CAP_PROP_FPS)
+if fps <= 0:
+    print(f"Warning: Camera/Video FPS reported as {fps}. Defaulting to 30 FPS.")
+    fps = 30.0
+target_frame_duration = 1.0 / fps
+
+out = setup_recorder(cap, output_path, fps) if record_video and mode == "live" else None
 
 if record_video:
-    print(f"Nagrywanie aktywne — zapis do: {output_path}")
+    print(f"Nagrywanie aktywne — zapis do: {output_path} (FPS: {fps:.2f})")
 else:
     print("Nagrywanie wyłączone")
 
@@ -39,11 +45,15 @@ cv2.namedWindow("Autentykacja", cv2.WINDOW_NORMAL)
 
 last_result_time = 0
 last_result_text = ""
-result_display_duration = 3
+result_display_duration = 3  # seconds
 
 print("System uruchomiony. Wciśnij 'q' aby zakończyć.")
 
 while True:
+    loop_start_time = time.time()
+
+    distance_metric = None
+
     ret, frame = cap.read()
     if not ret:
         print("Koniec pliku lub problem z kamerą.")
@@ -55,22 +65,24 @@ while True:
         if capturer.check_capture(is_facing):
             pil_image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             embedding = embedder.get_embedding(pil_image)
-            user_id, distance = authenticator.authenticate(embedding)
+            user_id, auth_distance = authenticator.authenticate(embedding)
+            distance_metric = auth_distance
 
             if user_id:
                 last_result_text = f"Rozpoznano: {user_id}"
                 print(f"✅ Rozpoznano: {user_id}")
                 if is_verbose:
-                    print_logs(user_id, distance, detection)
+                    print_logs(user_id, distance_metric, detection)
             else:
                 last_result_text = "Nieznana osoba"
                 print("❌ Nieznana osoba")
                 if is_verbose:
-                    print_logs(user_id=None, distance=distance, detection=detection)
+                    print_logs(user_id=None, distance=distance_metric, detection=detection)
 
             last_result_time = time.time()
 
-    if time.time() - last_result_time < result_display_duration:
+    current_display_time = time.time()
+    if current_display_time - last_result_time < result_display_duration:
         cv2.putText(
             frame,
             last_result_text,
@@ -81,15 +93,18 @@ while True:
             2,
         )
         if is_verbose and detection:
-            draw_overlay(frame, detection, distance)
+            draw_overlay(frame, detection, distance_metric)
 
     cv2.imshow("Autentykacja", frame)
 
-    # TODO: fix the way the video is recorded (sync with framerate, possibly on another thread??)
     if out:
         out.write(frame)
 
-    if cv2.waitKey(1) & 0xFF == ord("q"):
+    processing_time = time.time() - loop_start_time
+
+    wait_duration_ms = int(max(1, (target_frame_duration - processing_time) * 1000))
+
+    if cv2.waitKey(wait_duration_ms) & 0xFF == ord("q"):
         print("Zamykanie programu...")
         break
 if out:

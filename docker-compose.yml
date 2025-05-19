@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: ripo_app
+    volumes:
+      - ./config:/app/config
+      - ./db:/app/db
+      - ./videos:/app/videos
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    environment:
+      - DISPLAY=${DISPLAY}
+      - PYTHONUNBUFFERED=1
+    stdin_open: true 
+    tty: true
