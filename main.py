@@ -40,7 +40,14 @@ if mode == "image":
         if capturer.check_capture(is_facing):
             pil_image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             embedding = embedder.get_embedding(pil_image)
-            user_id, auth_distance = authenticator.authenticate(embedding)
+            
+            auth_result = authenticator.authenticate(embedding)
+            user_id = None
+            auth_distance = None
+
+            if auth_result is not None:
+                user_id, auth_distance = auth_result
+            
             distance_metric = auth_distance
             user_id_result = user_id
 
@@ -111,7 +118,6 @@ while True:
         print("Koniec pliku lub problem z kamerą.")
         break
 
-    distance_metric = None
     detection = detector.detect(frame)
 
     if detection:
@@ -119,8 +125,15 @@ while True:
         if capturer.check_capture(is_facing):
             pil_image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             embedding = embedder.get_embedding(pil_image)
-            user_id, auth_distance = authenticator.authenticate(embedding)
-            distance_metric = auth_distance
+
+            auth_result = authenticator.authenticate(embedding)
+            user_id = None
+            auth_distance = None
+
+            if auth_result is not None:
+                user_id, auth_distance = auth_result
+            
+            distance_metric = auth_distance # Use auth_distance as the distance_metric
 
             if user_id:
                 current_result_text = f"Rozpoznano: {user_id}"
@@ -140,7 +153,7 @@ while True:
             last_result_time = time.time()
             last_detection_time = time.time()
             last_detection = detection
-            last_distance = distance_metric
+            last_distance = distance_metric # Ensure last_distance gets the potentially None distance_metric
     else:
         if time.time() - last_detection_time < result_display_duration:
             detection = last_detection
