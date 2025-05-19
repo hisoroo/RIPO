@@ -1,9 +1,7 @@
-version: '3.8'
-
 services:
   app:
     build: .
-    container_name: ripo_app
+    container_name: ripo
     volumes:
       - ./config:/app/config
       - ./db:/app/db
@@ -12,5 +10,7 @@ services:
     environment:
       - DISPLAY=${DISPLAY}
       - PYTHONUNBUFFERED=1
-    stdin_open: true 
+    stdin_open: true
     tty: true
+    devices:
+      - /dev/video0:/dev/video0
