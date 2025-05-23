@@ -32,10 +32,11 @@ database:
 # === Różne ===
 misc:
   verbose: true # Wypisywanie dodatkowych informacji o przebiegu działania systemu
+  headless: true # Uruchomienie aplikacji bez interfejsu graficznego (true/false)
 
   # === Wejście wideo ===
   video:
-    mode: "live" # "live" - kamera na żywo, "file" - analiza nagranego pliku
-    video_path: "" # Ścieżka do pliku wideo (gdy mode == "file")
-    record_video: false # Czy zapisywać sesję wideo (działa tylko w trybie "live")
+    mode: "live" # "live" - kamera na żywo, "video" - analiza nagranego pliku, "image" analiza zdjęcia
+    file_path: "" # Ścieżka do pliku wideo lub zdjęcia (gdy mode == "video" lub "image")
+    record_video: true # Czy zapisywać sesję wideo (działa tylko w trybie "live")
     output_path: "" # Ścieżka do pliku wyjściowego z nagraniem; jeśli puste, generowana będzie dynamicznie

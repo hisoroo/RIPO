@@ -176,3 +176,7 @@ cython_debug/
 *faces.db
 help.py
 videos
+*.jpg
+*.png
+*.mp4
+*.avi

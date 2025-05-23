@@ -1,0 +1,36 @@
+services:
+  recognition:
+    build: .
+    container_name: ripo_recognition
+    command: ["python", "main.py"]
+    volumes:
+      - ./config:/app/config
+      - ./db:/app/db
+      - ./videos:/app/videos
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    environment:
+      - DISPLAY=${DISPLAY}
+      - PYTHONUNBUFFERED=1
+      - KMP_DUPLICATE_LIB_OK=TRUE
+    stdin_open: true
+    tty: true
+    devices:
+      - /dev/video0:/dev/video0
+
+  register:
+    build: .
+    container_name: ripo_register
+    command: ["python", "utils/register.py"]
+    volumes:
+      - ./config:/app/config
+      - ./db:/app/db
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    environment:
+      - DISPLAY=${DISPLAY}
+      - PYTHONUNBUFFERED=1
+      - KMP_DUPLICATE_LIB_OK=TRUE
+      - PYTHONPATH=/app
+    stdin_open: true
+    tty: true
+    devices:
+      - /dev/video0:/dev/video0

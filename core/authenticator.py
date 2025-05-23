@@ -20,7 +20,10 @@ class Authenticator:
 
     def authenticate(self, embedding_tensor):
         if embedding_tensor is None:
-            return None
+            return None, None 
+            
+        if self.index.ntotal == 0:
+            return None, None
 
         embedding = (
             embedding_tensor.detach().cpu().numpy().astype(np.float32).reshape(1, -1)
